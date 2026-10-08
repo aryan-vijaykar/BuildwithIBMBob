@@ -1,0 +1,3273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Build with IBM Bob: Hack Day | IBM User Group Nagpur</title>
+  <meta name="description" content="Build with IBM Bob: Hack Day hosted by IBM User Group Nagpur in collaboration with IBM. Pick a problem, build with AI, deploy on GitHub, and tell your story." />
+  
+  <!-- Open Graph -->
+  <meta property="og:title" content="Build with IBM Bob: Hack Day" />
+  <meta property="og:description" content="Pick a problem. Build with AI. Ship it on GitHub. Tell the story." />
+  <meta property="og:type" content="website" />
+  <meta property="og:locale" content="en_US" />
+
+  <!-- Favicon Emoji -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🤖</text></svg>">
+
+  <!-- Google Fonts: IBM Plex Sans & IBM Plex Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+
+  <style>
+    /* ==========================================================================
+       INTRO SPLASH SCREEN
+       ========================================================================== */
+    #splashScreen {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      background: #030608;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 24px;
+      transition: opacity 0.7s ease, transform 0.7s ease;
+    }
+    #splashScreen.hide {
+      opacity: 0;
+      transform: scale(1.04);
+      pointer-events: none;
+    }
+    .splash-logo {
+      width: 110px;
+      height: 110px;
+      background: linear-gradient(135deg, #0F1929, #0a1628);
+      border-radius: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      animation: splashPulse 1.2s ease-in-out infinite alternate;
+      box-shadow: 0 0 40px rgba(15,98,254,0.6);
+      border: 1px solid rgba(120,169,255,0.3);
+    }
+    @keyframes splashPulse {
+      from { box-shadow: 0 0 20px rgba(15,98,254,0.4); transform: scale(1); }
+      to   { box-shadow: 0 0 60px rgba(120,169,255,0.8); transform: scale(1.06); }
+    }
+    .splash-bar-track {
+      width: 220px;
+      height: 3px;
+      background: rgba(255,255,255,0.08);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+    .splash-bar-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #0F62FE, #78A9FF, #A56EFF);
+      border-radius: 3px;
+      animation: splashLoad 1.6s cubic-bezier(0.4,0,0.2,1) forwards;
+    }
+    @keyframes splashLoad {
+      0%   { width: 0%; }
+      60%  { width: 70%; }
+      100% { width: 100%; }
+    }
+    .splash-text {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.78rem;
+      color: rgba(120,169,255,0.7);
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      animation: splashBlink 1s step-end infinite;
+    }
+    @keyframes splashBlink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+    /* ==========================================================================
+       PARTICLE CANVAS
+       ========================================================================== */
+    #particleCanvas {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ==========================================================================
+       ANIMATED BORDER CARDS
+       ========================================================================== */
+    .anim-border {
+      position: relative;
+      isolation: isolate;
+    }
+    .anim-border::before {
+      content: '';
+      position: absolute;
+      inset: -1px;
+      border-radius: inherit;
+      padding: 1px;
+      background: linear-gradient(
+        var(--anim-angle, 0deg),
+        rgba(15,98,254,0.0) 0%,
+        rgba(120,169,255,0.9) 40%,
+        rgba(165,110,255,0.9) 60%,
+        rgba(15,98,254,0.0) 100%
+      );
+      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+      animation: rotateBorder 4s linear infinite;
+      opacity: 0;
+      transition: opacity 0.3s;
+      z-index: -1;
+    }
+    .anim-border:hover::before { opacity: 1; }
+    @property --anim-angle {
+      syntax: '<angle>';
+      inherits: false;
+      initial-value: 0deg;
+    }
+    @keyframes rotateBorder {
+      to { --anim-angle: 360deg; }
+    }
+
+    /* ==========================================================================
+       GLITCH TITLE EFFECT
+       ========================================================================== */
+    .glitch {
+      position: relative;
+    }
+    .glitch::before,
+    .glitch::after {
+      content: attr(data-text);
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%;
+      height: 100%;
+      background: transparent;
+      clip-path: polygon(0 0, 100% 0, 100% 45%, 0 45%);
+    }
+    .glitch::before {
+      left: 2px;
+      text-shadow: -2px 0 #A56EFF;
+      animation: glitch1 3.5s infinite linear alternate-reverse;
+    }
+    .glitch::after {
+      left: -2px;
+      text-shadow: 2px 0 #78A9FF;
+      animation: glitch2 2.8s infinite linear alternate-reverse;
+      clip-path: polygon(0 55%, 100% 55%, 100% 100%, 0 100%);
+    }
+    @keyframes glitch1 {
+      0%,90%,100% { clip-path: polygon(0 0,100% 0,100% 0,0 0); transform: translate(0); }
+      92% { clip-path: polygon(0 15%,100% 15%,100% 35%,0 35%); transform: translate(-3px,1px); }
+      94% { clip-path: polygon(0 60%,100% 60%,100% 75%,0 75%); transform: translate(3px,-1px); }
+      96% { clip-path: polygon(0 40%,100% 40%,100% 55%,0 55%); transform: translate(-2px,2px); }
+    }
+    @keyframes glitch2 {
+      0%,88%,100% { clip-path: polygon(0 100%,100% 100%,100% 100%,0 100%); transform: translate(0); }
+      90% { clip-path: polygon(0 65%,100% 65%,100% 80%,0 80%); transform: translate(3px,-2px); }
+      93% { clip-path: polygon(0 20%,100% 20%,100% 40%,0 40%); transform: translate(-3px,1px); }
+      96% { clip-path: polygon(0 50%,100% 50%,100% 65%,0 65%); transform: translate(2px,2px); }
+    }
+
+    /* ==========================================================================
+       FLOATING ORB BLOBS (ANIMATED BG GLOWS)
+       ========================================================================== */
+    .orb {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(120px);
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0.18;
+      animation: orbFloat 20s ease-in-out infinite alternate;
+    }
+    .orb-1 { width: 500px; height: 500px; background: #0F62FE; top: -100px; left: -150px; animation-duration: 18s; }
+    .orb-2 { width: 400px; height: 400px; background: #A56EFF; top: 40%; right: -100px; animation-duration: 22s; animation-delay: -6s; }
+    .orb-3 { width: 350px; height: 350px; background: #00D7D2; bottom: 10%; left: 20%; animation-duration: 25s; animation-delay: -12s; }
+    @keyframes orbFloat {
+      0%   { transform: translate(0,0) scale(1); }
+      33%  { transform: translate(40px,-60px) scale(1.1); }
+      66%  { transform: translate(-30px,40px) scale(0.95); }
+      100% { transform: translate(20px,-20px) scale(1.05); }
+    }
+
+    /* ==========================================================================
+       NEON SCANLINE ON TERMINAL
+       ========================================================================== */
+    .terminal-card {
+      position: relative;
+      overflow: hidden;
+    }
+    .terminal-card::after {
+      content: '';
+      position: absolute;
+      top: -100%;
+      left: 0;
+      width: 100%;
+      height: 40%;
+      background: linear-gradient(
+        180deg,
+        transparent 0%,
+        rgba(120,169,255,0.04) 40%,
+        rgba(120,169,255,0.07) 50%,
+        rgba(120,169,255,0.04) 60%,
+        transparent 100%
+      );
+      animation: scanline 4s linear infinite;
+      pointer-events: none;
+      z-index: 10;
+    }
+    @keyframes scanline {
+      0%   { top: -40%; }
+      100% { top: 110%; }
+    }
+
+    /* ==========================================================================
+       HOVER TILT CARDS (3D)
+       ========================================================================== */
+    .tilt-card {
+      transform-style: preserve-3d;
+      will-change: transform;
+      transition: transform 0.1s ease, box-shadow 0.2s ease;
+    }
+    .tilt-card:hover {
+      box-shadow: 0 20px 60px rgba(0,0,0,0.6), 0 0 40px rgba(15,98,254,0.25);
+    }
+
+    /* ==========================================================================
+       COUNTER ROLL ANIMATION
+       ========================================================================== */
+    .stat-number {
+      transition: none;
+    }
+    .counting {
+      animation: countFlash 0.1s linear;
+    }
+    @keyframes countFlash {
+      0%   { opacity: 0.6; }
+      100% { opacity: 1; }
+    }
+
+    /* ==========================================================================
+       RIPPLE EFFECT
+       ========================================================================== */
+    .ripple-host {
+      position: relative;
+      overflow: hidden;
+    }
+    .ripple-wave {
+      position: absolute;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.18);
+      transform: scale(0);
+      animation: rippleExpand 0.55s linear;
+      pointer-events: none;
+    }
+    @keyframes rippleExpand {
+      to { transform: scale(4); opacity: 0; }
+    }
+
+    /* ==========================================================================
+       STREAK / SHIMMER SECTION DIVIDERS
+       ========================================================================== */
+    .section-streak {
+      position: relative;
+      overflow: hidden;
+    }
+    .section-streak::before {
+      content: '';
+      position: absolute;
+      top: 0; left: -100%;
+      width: 60%;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(120,169,255,0.6), transparent);
+      animation: streakSlide 3s ease-in-out infinite;
+    }
+    @keyframes streakSlide {
+      0%   { left: -60%; opacity: 0; }
+      30%  { opacity: 1; }
+      100% { left: 110%; opacity: 0; }
+    }
+
+    /* ==========================================================================
+       STAGGERED CARD ENTRANCE
+       ========================================================================== */
+    .stagger-child {
+      opacity: 0;
+      transform: translateY(30px) scale(0.97);
+      transition: opacity 0.5s cubic-bezier(0.16,1,0.3,1), transform 0.5s cubic-bezier(0.16,1,0.3,1);
+    }
+    .stagger-child.visible {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+
+    /* ==========================================================================
+       MAGNETIC BUTTON AURA
+       ========================================================================== */
+    .btn-primary {
+      transition: all 0.25s cubic-bezier(0.34,1.56,0.64,1);
+      will-change: transform;
+    }
+    .btn-primary::after {
+      content: '';
+      position: absolute;
+      inset: -6px;
+      border-radius: inherit;
+      background: radial-gradient(circle at var(--mx,50%) var(--my,50%), rgba(15,98,254,0.35) 0%, transparent 70%);
+      opacity: 0;
+      transition: opacity 0.3s;
+      pointer-events: none;
+    }
+    .btn-primary:hover::after { opacity: 1; }
+    .btn {
+      position: relative;
+      isolation: isolate;
+    }
+
+    /* ==========================================================================
+       HERO TITLE GRADIENT ANIMATION
+       ========================================================================== */
+    .hero-title span {
+      background: linear-gradient(90deg, #FFFFFF, #C8DCFF, #78A9FF, #A56EFF, #FFFFFF);
+      background-size: 300% 100%;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      animation: gradientShift 5s linear infinite;
+    }
+    @keyframes gradientShift {
+      0%   { background-position: 0% 50%; }
+      100% { background-position: 300% 50%; }
+    }
+
+    /* ==========================================================================
+       FLOATING DATA PARTICLES (CSS fallback dots)
+       ========================================================================== */
+    .float-dot {
+      position: fixed;
+      width: 3px;
+      height: 3px;
+      border-radius: 50%;
+      background: rgba(120,169,255,0.5);
+      pointer-events: none;
+      z-index: 1;
+      animation: floatUp linear infinite;
+    }
+    @keyframes floatUp {
+      0%   { transform: translateY(0) scale(1); opacity: 0.7; }
+      100% { transform: translateY(-100vh) scale(0.5); opacity: 0; }
+    }
+
+    /* ==========================================================================
+       NAVBAR SCROLL PROGRESS BAR
+       ========================================================================== */
+    #scrollProgress {
+      position: fixed;
+      top: 0; left: 0;
+      height: 3px;
+      width: 0%;
+      background: linear-gradient(90deg, #0F62FE, #78A9FF, #A56EFF);
+      z-index: 1100;
+      transition: width 0.1s linear;
+      box-shadow: 0 0 8px rgba(120,169,255,0.8);
+    }
+
+    /* ==========================================================================
+       BADGE PULSE ANIMATION
+       ========================================================================== */
+    .badge-accent {
+      animation: badgePulse 2s ease-in-out infinite alternate;
+    }
+    @keyframes badgePulse {
+      from { box-shadow: 0 0 0 rgba(255,190,0,0); }
+      to   { box-shadow: 0 0 12px rgba(255,190,0,0.5); }
+    }
+
+    /* ==========================================================================
+       CSS RESET & BASE DESIGN SYSTEM (IBM Carbon Inspired Dark Mode)
+       ========================================================================== */
+    :root {
+      --bg-dark: #0B0F1A;
+      --bg-card: rgba(18, 26, 44, 0.7);
+      --bg-card-hover: rgba(26, 36, 62, 0.85);
+      --border-subtle: rgba(141, 192, 255, 0.15);
+      --border-bright: rgba(15, 98, 254, 0.6);
+      
+      --ibm-blue: #0F62FE;
+      --ibm-blue-hover: #0353E9;
+      --ibm-cyan: #78A9FF;
+      --ibm-purple: #A56EFF;
+      --ibm-purple-glow: rgba(165, 110, 255, 0.15);
+      
+      --text-primary: #F4F4F4;
+      --text-secondary: #C6C6C6;
+      --text-muted: #8D8D8D;
+      
+      --mono-font: 'IBM Plex Mono', monospace;
+      --sans-font: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      
+      --glow-blue: 0 0 35px rgba(15, 98, 254, 0.35);
+      --glow-cyan: 0 0 25px rgba(120, 169, 255, 0.3);
+      --radius-sm: 4px;
+      --radius-md: 8px;
+      --radius-lg: 12px;
+      
+      --nav-height: 72px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      scroll-behavior: smooth;
+      background-color: var(--bg-dark);
+      color: var(--text-primary);
+      font-family: var(--sans-font);
+      font-size: 16px;
+      line-height: 1.6;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html {
+        scroll-behavior: auto;
+      }
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+
+    body {
+      min-height: 100vh;
+      overflow-x: hidden;
+      background-image: 
+        radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.04) 1px, transparent 0),
+        linear-gradient(180deg, rgba(11, 15, 26, 0.8) 0%, #0B0F1A 100%);
+      background-size: 28px 28px, 100% 100%;
+      background-attachment: fixed;
+    }
+
+    /* TYPOGRAPHY */
+    h1, h2, h3, h4, h5, h6 {
+      font-family: var(--sans-font);
+      font-weight: 600;
+      line-height: 1.25;
+      letter-spacing: -0.01em;
+      color: var(--text-primary);
+    }
+
+    .font-mono {
+      font-family: var(--mono-font);
+    }
+
+    p {
+      color: var(--text-secondary);
+    }
+
+    a {
+      color: var(--ibm-cyan);
+      text-decoration: none;
+      transition: color 0.2s ease, text-decoration 0.2s ease;
+    }
+
+    a:hover {
+      color: #ffffff;
+      text-decoration: underline;
+    }
+
+    /* UTILITY LAYOUT */
+    .container {
+      width: 100%;
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    /* Ensure page content sits above canvas/orbs */
+    header, section, footer {
+      position: relative;
+      z-index: 2;
+    }
+
+    .section-padding {
+      padding: 96px 0;
+    }
+
+    .section-header {
+      margin-bottom: 48px;
+    }
+
+    .section-eyebrow {
+      font-family: var(--mono-font);
+      font-size: 0.875rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--ibm-cyan);
+      display: inline-block;
+      margin-bottom: 8px;
+    }
+
+    .section-title {
+      font-size: 2.25rem;
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .section-subtitle {
+      font-size: 1.125rem;
+      max-width: 680px;
+      color: var(--text-secondary);
+    }
+
+    /* BUTTONS */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      font-family: var(--sans-font);
+      font-size: 0.9375rem;
+      font-weight: 500;
+      padding: 13px 26px;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      text-decoration: none !important;
+      transition: all 0.2s ease-in-out;
+      border: 1px solid transparent;
+      white-space: nowrap;
+    }
+
+    .btn-primary {
+      background: var(--ibm-blue);
+      color: #ffffff;
+      box-shadow: 0 4px 20px rgba(15, 98, 254, 0.4);
+    }
+
+    .btn-primary:hover {
+      background: var(--ibm-blue-hover);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 24px rgba(15, 98, 254, 0.6);
+      color: #ffffff;
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-primary);
+      backdrop-filter: blur(8px);
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: var(--ibm-cyan);
+      color: #ffffff;
+      transform: translateY(-2px);
+    }
+
+    .btn-sm {
+      padding: 8px 16px;
+      font-size: 0.8125rem;
+    }
+
+    /* CARD STYLES */
+    .glass-card {
+      background: var(--bg-card);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+    }
+
+    .glass-card:hover {
+      border-color: rgba(120, 169, 255, 0.4);
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
+      transform: translateY(-3px);
+    }
+
+    /* BADGES & CHIPS */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      font-family: var(--mono-font);
+      font-size: 0.75rem;
+      border-radius: var(--radius-sm);
+      font-weight: 500;
+      letter-spacing: 0.04em;
+    }
+
+    .badge-blue {
+      background: rgba(15, 98, 254, 0.15);
+      border: 1px solid rgba(15, 98, 254, 0.4);
+      color: var(--ibm-cyan);
+    }
+
+    .badge-purple {
+      background: rgba(165, 110, 255, 0.15);
+      border: 1px solid rgba(165, 110, 255, 0.4);
+      color: #D4BBFF;
+    }
+
+    .badge-accent {
+      background: rgba(255, 190, 0, 0.15);
+      border: 1px solid rgba(255, 190, 0, 0.4);
+      color: #FFE699;
+    }
+
+    .badge-danger {
+      background: rgba(218, 30, 40, 0.15);
+      border: 1px solid rgba(218, 30, 40, 0.5);
+      color: #FF8389;
+    }
+
+    /* SCROLL ANIMATION */
+    .reveal {
+      opacity: 0;
+      transform: translateY(24px);
+      transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1), transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .reveal.active {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* ==========================================================================
+       NAVBAR
+       ========================================================================== */
+    .navbar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: var(--nav-height);
+      background: rgba(11, 15, 26, 0.85);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border-subtle);
+      z-index: 1000;
+      transition: background 0.3s ease;
+    }
+
+    .nav-container {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 100%;
+    }
+
+    .nav-brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: 700;
+      font-size: 1.05rem;
+      color: #ffffff;
+      text-decoration: none !important;
+    }
+
+    .nav-brand-logo {
+      width: 32px;
+      height: 32px;
+      background: linear-gradient(135deg, var(--ibm-blue), var(--ibm-cyan));
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--mono-font);
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #ffffff;
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      list-style: none;
+      gap: 24px;
+    }
+
+    .nav-link {
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: var(--text-secondary);
+      transition: color 0.2s ease;
+      position: relative;
+      text-decoration: none !important;
+      padding: 6px 0;
+    }
+
+    .nav-link:hover, .nav-link.active {
+      color: #ffffff;
+    }
+
+    .nav-link.active::after {
+      content: '';
+      position: absolute;
+      bottom: -4px;
+      left: 0;
+      width: 100%;
+      height: 2px;
+      background: var(--ibm-blue);
+      border-radius: 2px;
+      box-shadow: 0 0 8px var(--ibm-blue);
+    }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .menu-toggle {
+      display: none;
+      background: transparent;
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      padding: 8px;
+      color: var(--text-primary);
+      cursor: pointer;
+    }
+
+    /* ==========================================================================
+       HERO SECTION
+       ========================================================================== */
+    .hero {
+      position: relative;
+      padding-top: calc(var(--nav-height) + 56px);
+      padding-bottom: 96px;
+      overflow: hidden;
+    }
+
+    .hero-glow {
+      position: absolute;
+      top: 10%;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 650px;
+      height: 400px;
+      background: radial-gradient(circle, rgba(15, 98, 254, 0.22) 0%, rgba(165, 110, 255, 0.12) 45%, transparent 75%);
+      filter: blur(80px);
+      z-index: -1;
+      pointer-events: none;
+      animation: pulseGlow 8s ease-in-out infinite alternate;
+    }
+
+    @keyframes pulseGlow {
+      0% { opacity: 0.6; transform: translateX(-50%) scale(0.95); }
+      100% { opacity: 1; transform: translateX(-50%) scale(1.1); }
+    }
+
+    .hero-content {
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: 48px;
+      align-items: center;
+    }
+
+    .hero-eyebrow {
+      font-family: var(--mono-font);
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: var(--ibm-cyan);
+      letter-spacing: 0.14em;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .hero-eyebrow::before {
+      content: "";
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      background: var(--ibm-cyan);
+      border-radius: 50%;
+      box-shadow: 0 0 10px var(--ibm-cyan);
+    }
+
+    .hero-title {
+      font-size: 3.5rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      line-height: 1.1;
+      margin-bottom: 12px;
+    }
+
+    .hero-title span {
+      background: linear-gradient(90deg, #FFFFFF 0%, #C8DCFF 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .hero-subtitle-tag {
+      display: inline-block;
+      font-family: var(--mono-font);
+      font-size: 1.5rem;
+      color: var(--ibm-cyan);
+      font-weight: 500;
+      margin-bottom: 20px;
+    }
+
+    .hero-tagline {
+      font-size: 1.25rem;
+      color: var(--text-secondary);
+      line-height: 1.5;
+      margin-bottom: 32px;
+    }
+
+    .hero-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 36px;
+    }
+
+    .info-chip {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border-subtle);
+      padding: 8px 16px;
+      border-radius: 40px;
+      font-family: var(--mono-font);
+      font-size: 0.85rem;
+      color: var(--text-primary);
+    }
+
+    .info-chip svg {
+      color: var(--ibm-cyan);
+      flex-shrink: 0;
+    }
+
+    .hero-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      align-items: center;
+      margin-bottom: 36px;
+    }
+
+    /* COUNTDOWN (SUBMISSION DEADLINE FOCUS) */
+    .countdown-card {
+      background: rgba(18, 26, 44, 0.85);
+      border: 1px solid rgba(120, 169, 255, 0.35);
+      border-radius: var(--radius-md);
+      padding: 18px 24px;
+      display: inline-flex;
+      flex-direction: column;
+      gap: 10px;
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4), 0 0 15px rgba(15, 98, 254, 0.15);
+    }
+
+    .countdown-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .countdown-title {
+      font-family: var(--mono-font);
+      font-size: 0.78rem;
+      color: var(--ibm-cyan);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .countdown-pulse-dot {
+      width: 7px;
+      height: 7px;
+      background: #FF5F56;
+      border-radius: 50%;
+      animation: pulseDeadline 1.4s infinite;
+    }
+
+    @keyframes pulseDeadline {
+      0% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.6); opacity: 0.4; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    .countdown-timer {
+      display: flex;
+      gap: 20px;
+    }
+
+    .countdown-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-width: 48px;
+    }
+
+    .countdown-val {
+      font-family: var(--mono-font);
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: #ffffff;
+      line-height: 1;
+    }
+
+    .countdown-lbl {
+      font-size: 0.6875rem;
+      color: var(--text-muted);
+      margin-top: 5px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .countdown-closed-banner {
+      display: none;
+      font-family: var(--mono-font);
+      font-size: 1rem;
+      font-weight: 700;
+      color: #FF8389;
+      background: rgba(218, 30, 40, 0.12);
+      border: 1px solid rgba(218, 30, 40, 0.4);
+      padding: 10px 16px;
+      border-radius: var(--radius-sm);
+      text-align: center;
+    }
+
+    /* TERMINAL CARD & MASCOT */
+    .terminal-card {
+      background: #060911;
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6), var(--glow-blue);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .terminal-topbar {
+      background: #0f1524;
+      padding: 12px 18px;
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .terminal-dots {
+      display: flex;
+      gap: 8px;
+    }
+
+    .terminal-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+
+    .terminal-dot.red { background: #FF5F56; }
+    .terminal-dot.yellow { background: #FFBD2E; }
+    .terminal-dot.green { background: #27C93F; }
+
+    .terminal-session-title {
+      font-family: var(--mono-font);
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    .terminal-body {
+      padding: 24px;
+      font-family: var(--mono-font);
+      font-size: 0.9375rem;
+    }
+
+    .terminal-prompt-line {
+      color: var(--ibm-cyan);
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .typed-text {
+      color: #ffffff;
+      font-weight: 500;
+    }
+
+    .cursor {
+      display: inline-block;
+      width: 9px;
+      height: 1.2em;
+      background-color: var(--ibm-cyan);
+      vertical-align: middle;
+      animation: blink 1s step-end infinite;
+    }
+
+    @keyframes blink {
+      from, to { opacity: 1; }
+      50% { opacity: 0; }
+    }
+
+    /* MASCOT VISUAL CONTAINER */
+    .mascot-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px 0;
+      background: radial-gradient(circle, rgba(15, 98, 254, 0.1) 0%, transparent 70%);
+      border-radius: var(--radius-md);
+      margin-top: 10px;
+      border: 1px dashed rgba(120, 169, 255, 0.2);
+    }
+
+    .mascot-caption {
+      font-size: 0.75rem;
+      font-family: var(--mono-font);
+      color: var(--text-muted);
+      margin-top: 12px;
+    }
+
+    /* ==========================================================================
+       ABOUT & STAT TILES
+       ========================================================================== */
+    .about-lead {
+      font-size: 1.25rem;
+      color: var(--text-primary);
+      max-width: 880px;
+      margin-bottom: 40px;
+      line-height: 1.6;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+    }
+
+    .stat-tile {
+      padding: 32px 24px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .stat-tile::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 3px;
+      background: linear-gradient(90deg, var(--ibm-blue), var(--ibm-cyan));
+    }
+
+    .stat-number {
+      font-family: var(--mono-font);
+      font-size: 2.25rem;
+      font-weight: 700;
+      color: #ffffff;
+      margin-bottom: 8px;
+    }
+
+    .stat-label {
+      font-size: 0.95rem;
+      color: var(--text-secondary);
+      font-weight: 500;
+    }
+
+    /* ==========================================================================
+       HOW IT WORKS (STEPPER)
+       ========================================================================== */
+    .stepper-container {
+      position: relative;
+      margin-top: 32px;
+    }
+
+    .stepper-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 24px;
+      position: relative;
+    }
+
+    .step-card {
+      padding: 32px 24px;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      z-index: 1;
+    }
+
+    .step-badge {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      background: rgba(15, 98, 254, 0.2);
+      border: 1px solid var(--ibm-blue);
+      color: #ffffff;
+      font-family: var(--mono-font);
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 20px;
+      box-shadow: 0 0 15px rgba(15, 98, 254, 0.4);
+    }
+
+    .step-title {
+      font-size: 1.15rem;
+      margin-bottom: 12px;
+      color: #ffffff;
+    }
+
+    .step-desc {
+      font-size: 0.9rem;
+      line-height: 1.5;
+    }
+
+    .stepper-footer-note {
+      margin-top: 36px;
+      padding: 16px 24px;
+      background: rgba(15, 98, 254, 0.08);
+      border-left: 4px solid var(--ibm-blue);
+      border-radius: 0 var(--radius-md) var(--radius-md) 0;
+      font-size: 0.95rem;
+      color: var(--ibm-cyan);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    /* ==========================================================================
+       PROBLEM STATEMENTS (EXPANDABLE)
+       ========================================================================== */
+    .ps-container {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .ps-card {
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      background: var(--bg-card);
+      overflow: hidden;
+      transition: all 0.3s ease;
+    }
+
+    .ps-card.expanded {
+      border-color: var(--border-bright);
+      box-shadow: 0 8px 30px rgba(15, 98, 254, 0.15);
+    }
+
+    .ps-header {
+      padding: 24px 28px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      user-select: none;
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .ps-header:hover {
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    .ps-title-group {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+    }
+
+    .ps-id {
+      font-family: var(--mono-font);
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: var(--ibm-cyan);
+      padding: 6px 12px;
+      background: rgba(15, 98, 254, 0.15);
+      border-radius: var(--radius-sm);
+      border: 1px solid rgba(15, 98, 254, 0.3);
+    }
+
+    .ps-title {
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: #ffffff;
+    }
+
+    .ps-toggle-icon {
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.3s ease;
+      color: var(--ibm-cyan);
+    }
+
+    .ps-card.expanded .ps-toggle-icon {
+      transform: rotate(180deg);
+    }
+
+    .ps-content {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.4s ease-out;
+      background: rgba(10, 15, 25, 0.5);
+    }
+
+    .ps-card.expanded .ps-content {
+      max-height: 900px;
+      transition: max-height 0.5s ease-in;
+    }
+
+    .ps-inner {
+      padding: 28px;
+      border-top: 1px solid var(--border-subtle);
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .ps-block-title {
+      font-family: var(--mono-font);
+      font-size: 0.8125rem;
+      text-transform: uppercase;
+      color: var(--ibm-cyan);
+      letter-spacing: 0.08em;
+      margin-bottom: 6px;
+    }
+
+    .ps-note {
+      margin-top: 24px;
+      font-family: var(--mono-font);
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      text-align: center;
+    }
+
+    /* ==========================================================================
+       PRIZES SECTION (CLEANED UP)
+       ========================================================================== */
+    .prizes-hero-card {
+      border: 1px solid rgba(120, 169, 255, 0.3);
+      background: linear-gradient(135deg, rgba(15, 98, 254, 0.12) 0%, rgba(165, 110, 255, 0.08) 100%), var(--bg-card);
+      border-radius: var(--radius-lg);
+      padding: 44px;
+      margin-bottom: 32px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .prizes-hero-card::after {
+      content: '';
+      position: absolute;
+      top: -60px;
+      right: -60px;
+      width: 260px;
+      height: 260px;
+      background: radial-gradient(circle, rgba(120, 169, 255, 0.25) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .prizes-header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      flex-wrap: wrap;
+      gap: 24px;
+      margin-bottom: 32px;
+    }
+
+    .prizes-top-title {
+      font-size: 1.85rem;
+      color: #ffffff;
+      margin-bottom: 8px;
+    }
+
+    .prizes-top-desc {
+      font-size: 1.05rem;
+      color: var(--text-secondary);
+      max-width: 620px;
+    }
+
+    .prizes-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+    }
+
+    .winner-slot-card {
+      background: rgba(10, 15, 25, 0.6);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 32px 24px;
+      text-align: center;
+      position: relative;
+      transition: all 0.3s ease;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .winner-slot-card:hover {
+      border-color: var(--ibm-cyan);
+      transform: translateY(-4px);
+    }
+
+    .winner-podium-rank {
+      width: 52px;
+      height: 52px;
+      margin: 0 auto 16px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--mono-font);
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: #ffffff;
+    }
+
+    .rank-1 {
+      background: linear-gradient(135deg, #FFB000, #F1C21B);
+      color: #121212;
+      box-shadow: 0 0 20px rgba(255, 176, 0, 0.4);
+    }
+
+    .rank-2 {
+      background: linear-gradient(135deg, #A8A8A8, #E0E0E0);
+      color: #121212;
+      box-shadow: 0 0 20px rgba(224, 224, 224, 0.3);
+    }
+
+    .rank-3 {
+      background: linear-gradient(135deg, #BA4E00, #FF832B);
+      color: #ffffff;
+      box-shadow: 0 0 20px rgba(255, 131, 43, 0.3);
+    }
+
+    .winner-reward-title {
+      font-family: var(--mono-font);
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: #ffffff;
+      margin-bottom: 6px;
+    }
+
+    .winner-reward-sub {
+      font-size: 0.85rem;
+      color: var(--ibm-cyan);
+      margin-bottom: 20px;
+    }
+
+    .winner-single-perk {
+      background: rgba(15, 98, 254, 0.12);
+      border: 1px solid rgba(120, 169, 255, 0.35);
+      border-radius: var(--radius-sm);
+      padding: 18px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      align-items: center;
+    }
+
+    .winner-single-perk-text {
+      font-family: var(--mono-font);
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: #ffffff;
+    }
+
+    .winner-single-perk-sub {
+      font-size: 0.8rem;
+      color: var(--ibm-cyan);
+    }
+
+    /* ==========================================================================
+       SCHEDULE (VERTICAL TIMELINE)
+       ========================================================================== */
+    .timeline {
+      position: relative;
+      margin-top: 32px;
+      padding-left: 36px;
+    }
+
+    .timeline::before {
+      content: '';
+      position: absolute;
+      top: 12px;
+      bottom: 12px;
+      left: 11px;
+      width: 2px;
+      background: rgba(141, 192, 255, 0.2);
+    }
+
+    .timeline-item {
+      position: relative;
+      margin-bottom: 32px;
+    }
+
+    .timeline-item:last-child {
+      margin-bottom: 0;
+    }
+
+    .timeline-node {
+      position: absolute;
+      left: -36px;
+      top: 6px;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: #0B0F1A;
+      border: 2px solid var(--border-subtle);
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .timeline-node::after {
+      content: '';
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--text-muted);
+    }
+
+    .timeline-item.active-session .timeline-node {
+      border-color: var(--ibm-blue);
+      box-shadow: 0 0 15px var(--ibm-blue);
+    }
+
+    .timeline-item.active-session .timeline-node::after {
+      background: var(--ibm-blue);
+      animation: pulseNode 1.5s infinite;
+    }
+
+    @keyframes pulseNode {
+      0% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.6); opacity: 0.6; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    .timeline-card {
+      padding: 20px 24px;
+      border-radius: var(--radius-md);
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .timeline-item.highlight-hack .timeline-card {
+      background: linear-gradient(135deg, rgba(15, 98, 254, 0.15) 0%, rgba(11, 15, 26, 0.9) 100%);
+      border: 1px solid rgba(120, 169, 255, 0.4);
+      box-shadow: 0 0 25px rgba(15, 98, 254, 0.15);
+    }
+
+    .timeline-time {
+      font-family: var(--mono-font);
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: var(--ibm-cyan);
+      margin-bottom: 4px;
+    }
+
+    .timeline-title {
+      font-size: 1.15rem;
+      color: #ffffff;
+    }
+
+    /* ==========================================================================
+       SUBMISSION CHECKLIST
+       ========================================================================== */
+    .checklist-wrapper {
+      padding: 36px;
+    }
+
+    .checklist-deadline-box {
+      background: rgba(15, 98, 254, 0.08);
+      border: 1px solid rgba(120, 169, 255, 0.25);
+      border-radius: var(--radius-md);
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 16px;
+      margin-bottom: 28px;
+    }
+
+    .checklist-deadline-clock {
+      font-family: var(--mono-font);
+      font-size: 1.35rem;
+      font-weight: 700;
+      color: #ffffff;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .progress-bar-container {
+      margin-bottom: 32px;
+    }
+
+    .progress-info {
+      display: flex;
+      justify-content: space-between;
+      font-family: var(--mono-font);
+      font-size: 0.875rem;
+      margin-bottom: 8px;
+    }
+
+    .progress-track {
+      width: 100%;
+      height: 10px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 5px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--ibm-blue), var(--ibm-cyan));
+      border-radius: 5px;
+      transition: width 0.4s ease;
+      box-shadow: 0 0 12px rgba(15, 98, 254, 0.6);
+    }
+
+    .checklist-items {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .check-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+      padding: 16px 20px;
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .check-item:hover {
+      background: rgba(255, 255, 255, 0.05);
+      border-color: rgba(120, 169, 255, 0.3);
+    }
+
+    .check-item.checked {
+      border-color: rgba(39, 201, 63, 0.4);
+      background: rgba(39, 201, 63, 0.04);
+    }
+
+    .custom-checkbox {
+      width: 22px;
+      height: 22px;
+      border: 2px solid var(--border-subtle);
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-top: 2px;
+      transition: all 0.2s ease;
+      background: #0B0F1A;
+    }
+
+    .check-item.checked .custom-checkbox {
+      background: #27C93F;
+      border-color: #27C93F;
+      color: #000000;
+    }
+
+    .check-text {
+      flex: 1;
+      font-size: 0.95rem;
+      line-height: 1.5;
+    }
+
+    .check-text strong {
+      color: #ffffff;
+      display: block;
+      margin-bottom: 2px;
+    }
+
+    /* ==========================================================================
+       JUDGING SECTION
+       ========================================================================== */
+    .judging-grid {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 36px;
+      align-items: start;
+    }
+
+    .rubric-list {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .rubric-header {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.95rem;
+      margin-bottom: 6px;
+    }
+
+    .rubric-name {
+      font-weight: 500;
+      color: #ffffff;
+    }
+
+    .rubric-points {
+      font-family: var(--mono-font);
+      color: var(--ibm-cyan);
+    }
+
+    .rubric-bar {
+      height: 8px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .rubric-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--ibm-blue), var(--ibm-cyan));
+      border-radius: 4px;
+      width: 0%;
+      transition: width 1s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .highlight-rule-box {
+      margin-top: 24px;
+      padding: 24px;
+      border: 1px dashed var(--ibm-cyan);
+      border-radius: var(--radius-md);
+      background: rgba(120, 169, 255, 0.05);
+    }
+
+    .highlight-rule-title {
+      font-family: var(--mono-font);
+      font-size: 0.8125rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--ibm-cyan);
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* ==========================================================================
+       PEOPLE & PARTNERS (MENTORS, ORGANIZERS, VENUE)
+       ========================================================================== */
+    .people-section {
+      margin-bottom: 48px;
+    }
+
+    .mentors-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 24px;
+    }
+
+    .mentor-card {
+      padding: 24px;
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .avatar-placeholder {
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.05);
+      border: 2px dashed rgba(120, 169, 255, 0.4);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.65rem;
+      color: var(--text-muted);
+      font-family: var(--mono-font);
+      text-align: center;
+      flex-shrink: 0;
+    }
+
+    .mentor-info h4 {
+      font-size: 1.15rem;
+      margin-bottom: 4px;
+      color: #ffffff;
+    }
+
+    .organizers-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+
+    .organizer-chip {
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .organizer-initial {
+      width: 36px;
+      height: 36px;
+      border-radius: var(--radius-sm);
+      background: rgba(15, 98, 254, 0.2);
+      border: 1px solid var(--ibm-blue);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--mono-font);
+      font-weight: 700;
+      color: var(--ibm-cyan);
+    }
+
+    .partner-card {
+      padding: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 20px;
+    }
+
+    .partner-logos {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .logo-box {
+      padding: 14px 20px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      font-family: var(--mono-font);
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #ffffff;
+      letter-spacing: 0.05em;
+    }
+
+    /* ==========================================================================
+       FAQ ACCORDION
+       ========================================================================== */
+    .faq-list {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .faq-item {
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      background: var(--bg-card);
+      overflow: hidden;
+    }
+
+    .faq-question {
+      padding: 20px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 1.05rem;
+      color: #ffffff;
+      user-select: none;
+    }
+
+    .faq-toggle-icon {
+      color: var(--ibm-cyan);
+      transition: transform 0.3s ease;
+    }
+
+    .faq-item.open .faq-toggle-icon {
+      transform: rotate(180deg);
+    }
+
+    .faq-answer {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease;
+      background: rgba(10, 15, 25, 0.4);
+    }
+
+    .faq-item.open .faq-answer {
+      max-height: 250px;
+    }
+
+    .faq-answer-inner {
+      padding: 20px 24px;
+      border-top: 1px solid var(--border-subtle);
+      font-size: 0.95rem;
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+
+    /* ==========================================================================
+       FOOTER
+       ========================================================================== */
+    .footer {
+      background: #060911;
+      border-top: 1px solid var(--border-subtle);
+      padding: 80px 0 40px;
+    }
+
+    .footer-cta-card {
+      background: linear-gradient(135deg, rgba(15, 98, 254, 0.15) 0%, rgba(165, 110, 255, 0.08) 100%), var(--bg-card);
+      border: 1px solid rgba(120, 169, 255, 0.3);
+      border-radius: var(--radius-lg);
+      padding: 48px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 32px;
+      margin-bottom: 64px;
+    }
+
+    .footer-quote {
+      font-size: 1.75rem;
+      font-weight: 600;
+      color: #ffffff;
+      margin-bottom: 8px;
+      line-height: 1.3;
+    }
+
+    .footer-qr-container {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+    }
+
+    .qr-box {
+      width: 96px;
+      height: 96px;
+      background: #ffffff;
+      border-radius: var(--radius-sm);
+      padding: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .qr-box svg {
+      width: 100%;
+      height: 100%;
+    }
+
+    .footer-bottom {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 20px;
+      padding-top: 32px;
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+      font-size: 0.875rem;
+      color: var(--text-muted);
+    }
+
+    .footer-socials {
+      display: flex;
+      gap: 20px;
+    }
+
+    /* RESPONSIVE BREAKPOINTS */
+    @media (max-width: 992px) {
+      .hero-content {
+        grid-template-columns: 1fr;
+      }
+      .hero-title {
+        font-size: 2.75rem;
+      }
+      .stepper-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+      .judging-grid {
+        grid-template-columns: 1fr;
+      }
+      .prizes-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .menu-toggle {
+        display: block;
+      }
+      .nav-links {
+        display: none;
+        position: absolute;
+        top: var(--nav-height);
+        left: 0;
+        width: 100%;
+        background: #0B0F1A;
+        border-bottom: 1px solid var(--border-subtle);
+        flex-direction: column;
+        padding: 24px;
+        gap: 16px;
+      }
+      .nav-links.open {
+        display: flex;
+      }
+      .stats-grid {
+        grid-template-columns: 1fr;
+      }
+      .stepper-grid {
+        grid-template-columns: 1fr;
+      }
+      .mentors-grid {
+        grid-template-columns: 1fr;
+      }
+      .organizers-grid {
+        grid-template-columns: 1fr;
+      }
+      .hero-title {
+        font-size: 2.25rem;
+      }
+      .prizes-hero-card {
+        padding: 28px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Scroll Progress Bar -->
+  <div id="scrollProgress"></div>
+
+  <!-- Intro Splash -->
+  <div id="splashScreen">
+    <div class="splash-logo">
+      <img src="bob-standing-BECrMjXJ.webp" alt="IBM Bob" width="72" height="72" style="object-fit:contain;"/>
+    </div>
+    <div class="splash-bar-track"><div class="splash-bar-fill"></div></div>
+    <div class="splash-text">Initializing IBM Bob...</div>
+  </div>
+
+  <!-- Animated Background Orbs -->
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
+
+  <!-- Particle Canvas -->
+  <canvas id="particleCanvas"></canvas>
+
+  <!-- ==========================================================================
+       NAVBAR
+       ========================================================================== -->
+  <header class="navbar" id="navbar">
+    <div class="container nav-container">
+      <a href="#hero" class="nav-brand">
+        <div class="nav-brand-logo" style="background:none; padding:0; width:36px; height:36px; overflow:visible;">
+          <img src="bob-standing-BECrMjXJ.webp" alt="IBM Bob" width="36" height="36" style="object-fit:contain; display:block;"/>
+        </div>
+        <span>Build with Bob</span>
+      </a>
+
+      <ul class="nav-links" id="navLinks">
+        <li><a href="#about" class="nav-link">About</a></li>
+        <li><a href="#how-it-works" class="nav-link">Process</a></li>
+        <li><a href="#tracks" class="nav-link">Tracks</a></li>
+        <li><a href="#prizes" class="nav-link">Prizes</a></li>
+        <li><a href="#schedule" class="nav-link">Schedule</a></li>
+        <li><a href="#submission" class="nav-link">Submit</a></li>
+        <li><a href="#judging" class="nav-link">Judging</a></li>
+        <li><a href="#faq" class="nav-link">FAQ</a></li>
+      </ul>
+
+      <div class="nav-actions">
+        <a id="navRegisterBtn" href="#" class="btn btn-primary btn-sm" target="_blank" rel="noopener">Register</a>
+        <button class="menu-toggle" id="menuToggle" aria-label="Toggle navigation">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ==========================================================================
+       HERO SECTION
+       ========================================================================== -->
+  <section class="hero" id="hero">
+    <div class="hero-glow"></div>
+    <div class="container hero-content">
+      <div class="hero-left reveal">
+        <div class="hero-eyebrow" id="heroEyebrow">IBM USER GROUP NAGPUR PRESENTS</div>
+        <h1 class="hero-title glitch" id="heroTitle" data-text="Build with IBM Bob">
+          Build with <span>IBM Bob</span>
+        </h1>
+        <div class="hero-subtitle-tag" id="heroSubtitle">Hack Day</div>
+        
+        <p class="hero-tagline" id="heroTagline">
+          Pick a problem. Build with AI. Ship it on GitHub. Tell the story.
+        </p>
+
+        <div class="hero-chips">
+          <div class="info-chip">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+            <span id="heroDateChip">Saturday, October 10, 2026</span>
+          </div>
+          <div class="info-chip">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+            <span id="heroTimeChip">11:00 AM - 2:00 PM</span>
+          </div>
+        </div>
+
+        <div class="hero-buttons">
+          <a id="heroRegisterBtn" href="#" class="btn btn-primary" target="_blank" rel="noopener">
+            <span>Register Now</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+          </a>
+          <a href="#tracks" class="btn btn-secondary">View Problem Statements</a>
+          <button id="addToCalBtn" class="btn btn-secondary btn-sm" title="Download .ics event file">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
+            <span>Add to Cal</span>
+          </button>
+        </div>
+
+        <!-- COUNTDOWN (SUBMISSION DEADLINE ONLY) -->
+        <div class="countdown-card">
+          <div class="countdown-header">
+            <div class="countdown-title">
+              <span class="countdown-pulse-dot"></span>
+              <span>Submission Deadline: 1:30 PM IST</span>
+            </div>
+            <span class="badge badge-blue">Hard Stop</span>
+          </div>
+          
+          <div class="countdown-timer" id="heroCountdownTimer">
+            <div class="countdown-item"><span class="countdown-val" id="cdDays">00</span><span class="countdown-lbl">Days</span></div>
+            <div class="countdown-item"><span class="countdown-val" id="cdHours">00</span><span class="countdown-lbl">Hours</span></div>
+            <div class="countdown-item"><span class="countdown-val" id="cdMinutes">00</span><span class="countdown-lbl">Mins</span></div>
+            <div class="countdown-item"><span class="countdown-val" id="cdSeconds">00</span><span class="countdown-lbl">Secs</span></div>
+          </div>
+
+          <div class="countdown-closed-banner" id="heroCountdownClosed">
+            ⚠ SUBMISSIONS CLOSED (Cutoff reached: 1:30 PM)
+          </div>
+        </div>
+      </div>
+
+      <!-- HERO TERMINAL CARD & MASCOT PLACEHOLDER -->
+      <div class="hero-right reveal">
+        <div class="terminal-card">
+          <div class="terminal-topbar">
+            <div class="terminal-dots">
+              <div class="terminal-dot red"></div>
+              <div class="terminal-dot yellow"></div>
+              <div class="terminal-dot green"></div>
+            </div>
+            <div class="terminal-session-title">ibm-bob-cli — zsh</div>
+          </div>
+          <div class="terminal-body">
+            <div class="terminal-prompt-line">
+              <span>user@nagpur-hub:~$</span>
+              <span class="typed-text" id="typewriterText"></span><span class="cursor"></span>
+            </div>
+
+            <!-- MASCOT PLACEHOLDER: Swap inline SVG below with <img src="real-bob.png" alt="IBM Bob Mascot" /> if real asset exists -->
+            <div class="mascot-container">
+              <img src="bob-standing-BECrMjXJ.webp" alt="IBM Bob" style="width:160px; height:160px; object-fit:contain; filter: drop-shadow(0 0 18px rgba(15,98,254,0.45));"/>
+              <div class="mascot-caption">// IBM Bob AI Agent v2.4 initialized</div>
+            </div>
+            <!-- END MASCOT -->
+
+            <div style="margin-top: 16px; font-size: 0.8rem; color: #8D8D8D;">
+              [✓] Model parameters loaded<br>
+              [✓] Tracks: PS-01, PS-02, PS-03 ready<br>
+              [✓] Submission Deadline: 1:30 PM IST strict cutoff.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==========================================================================
+       ABOUT SECTION
+       ========================================================================== -->
+  <section class="section-padding" id="about">
+    <div class="container">
+      <div class="section-header reveal">
+        <span class="section-eyebrow">Event Overview</span>
+        <h2 class="section-title">Built for Builders, Powered by Bob</h2>
+        <p class="section-subtitle">
+          Join the IBM User Group Nagpur for a focused, high-energy hackathon in collaboration with IBM. Work with cutting-edge AI, craft practical solutions, and share your technical journey.
+        </p>
+      </div>
+
+      <p class="about-lead reveal">
+        Participants choose one of three problem statements and build a working project with <strong>IBM Bob</strong> as their copilot, then deploy it on GitHub with a comprehensive <code>README.md</code> and publish an insight blog on the official community page.
+      </p>
+
+      <div class="stats-grid reveal">
+        <div class="stat-tile glass-card tilt-card anim-border">
+          <div class="stat-number" data-count="3" data-suffix="">3</div>
+          <div class="stat-label">Problem Statements</div>
+        </div>
+        <div class="stat-tile glass-card tilt-card anim-border">
+          <div class="stat-number">2h 20m</div>
+          <div class="stat-label">Of Pure Hack Time</div>
+        </div>
+        <div class="stat-tile glass-card tilt-card anim-border">
+          <div class="stat-number">Top 3</div>
+          <div class="stat-label">Winners Awarded</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==========================================================================
+       HOW IT WORKS (STEPPER)
+       ========================================================================== -->
+  <section class="section-padding section-streak" id="how-it-works" style="background: rgba(18, 26, 44, 0.25);">
+    <div class="container">
+      <div class="section-header reveal">
+        <span class="section-eyebrow">Execution Flow</span>
+        <h2 class="section-title">How It Works</h2>
+        <p class="section-subtitle">A direct, four-step path from problem exploration to shipped code and technical storytelling.</p>
+      </div>
+
+      <div class="stepper-container reveal">
+        <div class="stepper-grid">
+          <div class="step-card glass-card tilt-card anim-border stagger-child">
+            <div class="step-badge">1</div>
+            <h3 class="step-title">Pick a Track</h3>
+            <p class="step-desc">Choose one of the 3 real-world problem statements tailored to developer tools, digital media, or public access.</p>
+          </div>
+
+          <div class="step-card glass-card tilt-card anim-border stagger-child">
+            <div class="step-badge">2</div>
+            <h3 class="step-title">Build with IBM Bob</h3>
+            <p class="step-desc">Use IBM Bob as your primary AI pair-programmer to design logic, write features, and troubleshoot hurdles rapidly.</p>
+          </div>
+
+          <div class="step-card glass-card tilt-card anim-border stagger-child">
+            <div class="step-badge">3</div>
+            <h3 class="step-title">Deploy on GitHub</h3>
+            <p class="step-desc">Ship a clean public repository equipped with architecture notes and a detailed, reproducible <code>README.md</code>.</p>
+          </div>
+
+          <div class="step-card glass-card tilt-card anim-border stagger-child">
+            <div class="step-badge">4</div>
+            <h3 class="step-title">Publish a Blog</h3>
+            <p class="step-desc">Write and post your project build story, learnings, and Bob prompt snippets directly on the IBM Community portal.</p>
+          </div>
+        </div>
+
+        <div class="stepper-footer-note">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+          <span><strong>Critical Rule:</strong> Your project counts as complete only when the GitHub repo and the community blog are both published and live before the 1:30 PM cutoff!</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==========================================================================
+       PROBLEM STATEMENTS (INTERACTIVE ACCORDION)
+       ========================================================================== -->
+  <section class="section-padding" id="tracks">
+    <div class="container">
+      <div class="section-header reveal">
+        <span class="section-eyebrow">Hackathon Tracks</span>
+        <h2 class="section-title">Problem Statements</h2>
+        <p class="section-subtitle">Pick one statement to tackle. Click on each card to expand problem requirements and build ideas.</p>
+      </div>
+
+      <div class="ps-container reveal" id="psAccordion">
+        <!-- Dynamically rendered via JS config -->
+      </div>
+
+      <div class="ps-note reveal">
+        ⚡ <em>Note: Choose ONE track. Winners are picked overall across all three tracks based on normalized scoring.</em>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==========================================================================
+       PRIZES & REWARDS SECTION (UPDATED: CLEANED UP)
+       ========================================================================== -->
+  <section class="section-padding section-streak" id="prizes" style="background: rgba(15, 98, 254, 0.03);">
+    <div class="container">
+      <div class="section-header reveal">
+        <span class="section-eyebrow">Recognition & Perks</span>
+        <h2 class="section-title">Hackathon Prizes</h2>
+        <p class="section-subtitle">High-impact recognition for the builders who demonstrate extraordinary AI craftsmanship and execution speed.</p>
+      </div>
+
+      <div class="prizes-hero-card reveal">
+        <div class="prizes-header-row">
+          <div>
+            <div class="badge badge-accent" style="margin-bottom: 12px;">Top 3 Winners</div>
+            <h3 class="prizes-top-title">1 Month of IBM Bob Pro Plan</h3>
+            <p class="prizes-top-desc">
+              All Top 3 winners earn a full month of <strong>IBM Bob Pro</strong>, unlocking advanced agentic coding modes, Bob Shell execution, intelligent code reviews, and elevated AI allowances to accelerate technical workflows.
+            </p>
+          </div>
+          <div>
+            <span class="badge badge-blue font-mono" style="font-size: 0.9rem; padding: 8px 14px;">IBM Pro Access</span>
+          </div>
+        </div>
+
+        <div class="prizes-grid">
+          <!-- 1st Place Card -->
+          <div class="winner-slot-card tilt-card anim-border stagger-child">
+            <div>
+              <div class="winner-podium-rank rank-1">1st</div>
+              <h4 class="winner-reward-title">Grand Winner</h4>
+              <div class="winner-reward-sub">Rank #1 Overall Track</div>
+            </div>
+            <div class="winner-single-perk">
+              <span class="winner-single-perk-text">1 Month IBM Bob Pro Plan</span>
+              <span class="winner-single-perk-sub">Full Pro Plan Subscription Access</span>
+            </div>
+          </div>
+
+          <!-- 2nd Place Card -->
+          <div class="winner-slot-card tilt-card anim-border stagger-child">
+            <div>
+              <div class="winner-podium-rank rank-2">2nd</div>
+              <h4 class="winner-reward-title">First Runner Up</h4>
+              <div class="winner-reward-sub">Rank #2 Overall Track</div>
+            </div>
+            <div class="winner-single-perk">
+              <span class="winner-single-perk-text">1 Month IBM Bob Pro Plan</span>
+              <span class="winner-single-perk-sub">Full Pro Plan Subscription Access</span>
+            </div>
+          </div>
+
+          <!-- 3rd Place Card -->
+          <div class="winner-slot-card tilt-card anim-border stagger-child">
+            <div>
+              <div class="winner-podium-rank rank-3">3rd</div>
+              <h4 class="winner-reward-title">Second Runner Up</h4>
+              <div class="winner-reward-sub">Rank #3 Overall Track</div>
+            </div>
+            <div class="winner-single-perk">
+              <span class="winner-single-perk-text">1 Month IBM Bob Pro Plan</span>
+              <span class="winner-single-perk-sub">Full Pro Plan Subscription Access</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==========================================================================
+       SCHEDULE (VERTICAL TIMELINE WITH REALTIME HIGHLIGHT)
+       ========================================================================== -->
+  <section class="section-padding" id="schedule">
+    <div class="container">
+      <div class="section-header reveal">
+        <span class="section-eyebrow">Agenda</span>
+        <h2 class="section-title">Schedule of the Day</h2>
+        <p class="section-subtitle">Tight sprints, fast prototyping, and live finalist presentations.</p>
+      </div>
+
+      <div class="timeline reveal" id="scheduleTimeline">
+        <!-- Rendered via JS -->
+      </div>
+    </div>
+  </section>
+
+  <!-- ==========================================================================
+       SUBMISSION CHECKLIST (INTERACTIVE IN-MEMORY)
+       ========================================================================== -->
+  <section class="section-padding" id="submission" style="background: rgba(18, 26, 44, 0.3);">
+    <div class="container">
+      <div class="section-header reveal">
+        <span class="section-eyebrow">Deliverables</span>
+        <h2 class="section-title">Submission Checklist</h2>
+        <p class="section-subtitle">Verify your submission prerequisites before the 1:30 PM cutoff. State is saved dynamically during your session.</p>
+      </div>
+
+      <div class="checklist-wrapper glass-card reveal">
+        <!-- Dedicated In-Checklist Submission Countdown -->
+        <div class="checklist-deadline-box">
+          <div>
+            <div style="font-family: var(--mono-font); font-size: 0.8rem; color: var(--ibm-cyan); text-transform: uppercase;">
+              Submission Deadline Remaining
+            </div>
+            <div style="font-size: 0.875rem; color: var(--text-muted); margin-top: 2px;">
+              Form closes at exactly 1:30 PM IST (Saturday, Oct 10, 2026)
+            </div>
+          </div>
+          <div class="checklist-deadline-clock" id="checklistClock">
+            <span id="chkDays">00</span>d :
+            <span id="chkHours">00</span>h :
+            <span id="chkMinutes">00</span>m :
+            <span id="chkSeconds">00</span>s
+          </div>
+        </div>
+
+        <div class="progress-bar-container">
+          <div class="progress-info">
+            <span>Readiness Progress</span>
+            <span id="progressPercent">0%</span>
+          </div>
+          <div class="progress-track">
+            <div class="progress-fill" id="progressFill"></div>
+          </div>
+        </div>
+
+        <div class="checklist-items" id="checklistItems">
+          <!-- Rendered via JS -->
+        </div>
+
+        <div style="margin-top: 28px; display: flex; flex-wrap: wrap; gap: 16px;">
+          <a id="submissionFormBtn" href="#" class="btn btn-primary" target="_blank" rel="noopener">
+            <span>Open Submission Portal</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+          </a>
+          <a id="blogPublishBtn" href="#" class="btn btn-secondary" target="_blank" rel="noopener">
+            <span>Go to IBM Community Blogs</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==========================================================================
+       JUDGING CRITERIA
+       ========================================================================== -->
+  <section class="section-padding" id="judging">
+    <div class="container">
+      <div class="section-header reveal">
+        <span class="section-eyebrow">Evaluation Framework</span>
+        <h2 class="section-title">Judging Criteria</h2>
+        <p class="section-subtitle">Round 1 evaluation is scored strictly out of 100 points, followed by live finalist demos.</p>
+      </div>
+
+      <div class="judging-grid reveal">
+        <div class="glass-card" style="padding: 32px;">
+          <h3 style="font-size: 1.25rem; margin-bottom: 24px; color: #ffffff;">Round 1: 100-Point Scorecard</h3>
+          <div class="rubric-list" id="rubricContainer">
+            <!-- Rendered by JS -->
+          </div>
+        </div>
+
+        <div>
+          <div class="glass-card" style="padding: 32px; margin-bottom: 24px;">
+            <div class="badge badge-purple" style="margin-bottom: 12px;">Round 2</div>
+            <h3 style="font-size: 1.25rem; margin-bottom: 12px; color: #ffffff;">Finalist Live Demos</h3>
+            <p style="font-size: 0.95rem; margin-bottom: 16px;">
+              Top qualifying submissions present live to the mentors and jury:
+            </p>
+            <ul style="padding-left: 20px; font-size: 0.9rem; color: var(--text-secondary); line-height: 1.8;">
+              <li><strong>3 Minutes:</strong> Live project walkthrough and architecture demo.</li>
+              <li><strong>1 Minute:</strong> Fast-paced technical Q&A with the judging panel.</li>
+              <li>Top 3 overall chosen across all problem tracks.</li>
+            </ul>
+          </div>
+
+          <div class="highlight-rule-box">
+            <div class="highlight-rule-title">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+              <span>Crucial Judging Requirement</span>
+            </div>
+            <p style="font-size: 0.95rem; color: #ffffff; font-weight: 500;">
+              "Clearly explain which part of your solution actually uses AI."
+            </p>
+            <p style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 6px;">
+              Generic wrappers will be penalized. Your README and demo must articulate how Bob or generative models power the core logic.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==========================================================================
+       PEOPLE & PARTNERS
+       ========================================================================== -->
+  <section class="section-padding" id="people" style="background: rgba(18, 26, 44, 0.2);">
+    <div class="container">
+      <!-- MENTORS -->
+      <div class="people-section reveal">
+        <div class="section-header">
+          <span class="section-eyebrow">Guidance</span>
+          <h2 class="section-title">Technical Mentors</h2>
+        </div>
+        <div class="mentors-grid" id="mentorsList">
+          <!-- Rendered via JS -->
+        </div>
+      </div>
+
+      <!-- ORGANIZERS -->
+      <div class="people-section reveal">
+        <div class="section-header">
+          <span class="section-eyebrow">Core Team</span>
+          <h2 class="section-title">Organizers</h2>
+        </div>
+        <div class="organizers-grid" id="organizersList">
+          <!-- Rendered via JS -->
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ==========================================================================
+       FAQ SECTION
+       ========================================================================== -->
+  <section class="section-padding" id="faq">
+    <div class="container">
+      <div class="section-header reveal">
+        <span class="section-eyebrow">Clarifications</span>
+        <h2 class="section-title">Frequently Asked Questions</h2>
+        <p class="section-subtitle">Everything you need to know about the environment, submissions, and eligibility.</p>
+      </div>
+
+      <div class="faq-list reveal" id="faqAccordion">
+        <!-- Rendered via JS -->
+      </div>
+    </div>
+  </section>
+
+  <!-- ==========================================================================
+       FOOTER
+       ========================================================================== -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-cta-card reveal">
+        <div>
+          <div class="footer-quote">"Because Every Great Community is Built Together."</div>
+          <p style="font-size: 1rem; color: var(--text-secondary); max-width: 520px;">
+            Join the IBM User Group Nagpur to connect with enterprise developers, AI architects, and open-source contributors.
+          </p>
+          <div style="margin-top: 24px;">
+            <a id="footerCommunityBtn" href="#" class="btn btn-primary" target="_blank" rel="noopener">
+              Join IBM User Group Nagpur
+            </a>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="footer-bottom">
+        <div>
+          Powered by <strong>IBM User Group Nagpur</strong> in collaboration with <strong>IBM</strong>.
+        </div>
+        <div class="footer-socials">
+          <a href="https://community.ibm.com" target="_blank" rel="noopener">IBM Community</a>
+          <a href="https://github.com" target="_blank" rel="noopener">GitHub</a>
+          <a href="https://linkedin.com" target="_blank" rel="noopener">LinkedIn</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ==========================================================================
+       CENTRAL JAVASCRIPT CONFIGURATION & LOGIC
+       ========================================================================== -->
+  <script>
+    /* -------------------------------------------------------------------------
+       CONFIG OBJECT: Edit all event details, links, team and schedules here
+       ------------------------------------------------------------------------- */
+    const EVENT_CONFIG = {
+      title: "Build with IBM Bob",
+      subtitle: "Hack Day",
+      eyebrow: "IBM USER GROUP NAGPUR PRESENTS",
+      tagline: "Pick a problem. Build with AI. Ship it on GitHub. Tell the story.",
+      
+      // Event Date & Time (Saturday, October 10, 2026)
+      eventStartDateTime: "2026-10-10T11:00:00+05:30",
+      eventEndDateTime: "2026-10-10T14:00:00+05:30",
+      
+      // Submission Deadline (1:30 PM strict cutoff on Oct 10, 2026)
+      submissionDeadlineDateTime: "2026-10-10T13:30:00+05:30",
+
+      dateFormatted: "Saturday, October 10, 2026",
+      timeFormatted: "11:00 AM - 2:00 PM IST",
+
+      // External Links
+      registrationLink: "https://community.ibm.com/community/user/usergroup?CommunityKey=e4f46d37-1e9e-4068-9b74-019e74ef119d",
+      communityLink: "https://community.ibm.com/community/user/usergroup?CommunityKey=e4f46d37-1e9e-4068-9b74-019e74ef119d",
+      blogSubmissionLink: "https://community.ibm.com/community/user/groups/community-home/recent-community-blogs?communitykey=e4f46d37-1e9e-4068-9b74-019e74ef119d",
+      submissionPortalLink: "https://community.ibm.com/community/user/groups/community-home/recent-community-blogs?communitykey=e4f46d37-1e9e-4068-9b74-019e74ef119d",
+      mapLink: "https://maps.google.com/?q=IIM+Nagpur+InFED",
+
+      // People
+      mentors: [
+        { name: "Himanshu Rane", role: "Mentor", placeholder: "HR" },
+        { name: "Anmoldeep Singh", role: "Mentor", placeholder: "AS" }
+      ],
+      organizers: [
+        { name: "Aryan Vijaykar", initials: "AV" },
+        { name: "Aishwary Ghate", initials: "AG" },
+        { name: "Gunjan Ghangare", initials: "GG" }
+      ],
+
+      // Problem Statements
+      problemStatements: [
+        {
+          id: "PS 01",
+          track: "AI for Learning & Developer Productivity",
+          problem: "Build an AI-powered solution that helps people learn faster, work smarter, or become more productive while building or understanding technology.",
+          buildIdeas: "Interactive learning tutors or technical explainers; developer productivity enhancers (documentation synthesis, intelligent workflow automations, contextual debugging copilots); code explanation tools that clarify complex codebases and architectures.",
+          focus: "Clarity, tangible usefulness, and how AI meaningfully improves the learning curve or developer output."
+        },
+        {
+          id: "PS 02",
+          track: "AI for Media, Content & Digital Experiences",
+          problem: "Design an AI-driven solution that helps create, manage, personalize or distribute digital content more effectively.",
+          buildIdeas: "Content synthesis, rewriting and cross-platform formatting tools; social media planners and multi-channel asset generators; creative assistants for writers, designers and marketers; media discovery and automated metadata taggers.",
+          focus: "Creativity, polished UX, and how AI eliminates repetitive friction in modern creative workflows."
+        },
+        {
+          id: "PS 03",
+          track: "AI for Communities, Access & Public Impact",
+          problem: "Build an AI-powered solution that improves access to information, resources or opportunities for communities and public systems.",
+          buildIdeas: "Civic information navigators or public scheme discovery assistants; local education and community skill tools; systems that bridge localized markets and programs; voice-first, low-bandwidth or regional language interfaces.",
+          focus: "Inclusion, accessibility, and measurable real-world impact at a community level."
+        }
+      ],
+
+      // Schedule Items
+      schedule: [
+        { time: "11:00 AM - 11:10 AM", title: "Welcome, Intro & Problem Statements", isHack: false, startMin: 660, endMin: 670 },
+        { time: "11:10 AM - 1:30 PM", title: "Hack Time: Build with IBM Bob", isHack: true, badge: "Submission Deadline: 1:30 PM", startMin: 670, endMin: 810 },
+        { time: "1:30 PM - 1:40 PM", title: "Round 1 Evaluation & Finalist Selection", isHack: false, startMin: 810, endMin: 820 },
+        { time: "1:40 PM - 1:55 PM", title: "Finalist Live Demos (3m demo + 1m Q&A)", isHack: false, startMin: 820, endMin: 835 },
+        { time: "1:55 PM - 2:00 PM", title: "Winners & Closing Remarks", isHack: false, startMin: 835, endMin: 840 },
+        { time: "2:00 PM onwards", title: "Group Photo, Food & Networking", isHack: false, startMin: 840, endMin: 960 }
+      ],
+
+      // Judging Rubric Breakdown
+      rubric: [
+        { name: "AI Implementation", points: 25 },
+        { name: "Working Prototype", points: 25 },
+        { name: "Problem Understanding & Relevance", points: 20 },
+        { name: "Innovation & Uniqueness", points: 15 },
+        { name: "User Experience & Usability", points: 10 },
+        { name: "Potential Impact", points: 5 }
+      ],
+
+      // Checklist Items
+      checklist: [
+        { id: "c1", title: "Public GitHub repository", desc: "Source code is publicly accessible and builds without proprietary secrets." },
+        { id: "c2", title: "README.md documentation", desc: "Clearly outlines what the project does, architecture, how IBM Bob/AI was utilized, and local setup steps." },
+        { id: "c3", title: "Submission form completed before 1:30 PM", desc: "Submitted project links to the official intake portal before the hard deadline." },
+        { id: "c4", title: "Community blog published", desc: "Written post documenting problem, solution, Bob prompts, and screenshots live on the IBM Community portal." }
+      ],
+
+      // FAQs
+      faqs: [
+        {
+          q: "What should I bring to the Hack Day?",
+          a: "Bring your laptop, charger, GitHub account, and an inquisitive mind. Pre-register for an IBM Community account and ensure your development environment is ready."
+        },
+        {
+          q: "Can I participate with a partner?",
+          a: "This is a solo competition. Each participant builds and submits their own individual project."
+        },
+        {
+          q: "Is prior experience with IBM Bob required?",
+          a: "No prior experience is necessary! Mentors will be present to guide you, and Bob's conversational interface is beginner-friendly while being developer-grade."
+        },
+        {
+          q: "What if my project is unfinished by 1:30 PM?",
+          a: "Submit whatever working state you have! We value problem understanding, AI utilization, and architecture thought just as much as completed UIs."
+        },
+        {
+          q: "How are the winners chosen?",
+          a: "Submissions are scored on our 100-point rubric during Round 1. The top finalists proceed to live 3-minute demos, and the Top 3 winners are awarded across all tracks."
+        }
+      ]
+    };
+
+    /* -------------------------------------------------------------------------
+       HYDRATE CONFIG TO DOM
+       ------------------------------------------------------------------------- */
+    document.addEventListener("DOMContentLoaded", () => {
+      // Hero & Links
+      document.getElementById("heroEyebrow").textContent = EVENT_CONFIG.eyebrow;
+      document.getElementById("heroDateChip").textContent = EVENT_CONFIG.dateFormatted;
+      document.getElementById("navRegisterBtn").href = EVENT_CONFIG.registrationLink;
+      document.getElementById("heroRegisterBtn").href = EVENT_CONFIG.registrationLink;
+      document.getElementById("submissionFormBtn").href = EVENT_CONFIG.submissionPortalLink;
+      document.getElementById("blogPublishBtn").href = EVENT_CONFIG.blogSubmissionLink;
+      document.getElementById("footerCommunityBtn").href = EVENT_CONFIG.communityLink;
+      // Render Tracks Accordion
+      const psAccordion = document.getElementById("psAccordion");
+      psAccordion.innerHTML = EVENT_CONFIG.problemStatements.map((ps, idx) => `
+        <div class="ps-card ${idx === 0 ? 'expanded' : ''}" data-ps-idx="${idx}">
+          <div class="ps-header" onclick="togglePS(${idx})">
+            <div class="ps-title-group">
+              <span class="ps-id">${ps.id}</span>
+              <h3 class="ps-title">${ps.track}</h3>
+            </div>
+            <div class="ps-toggle-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </div>
+          </div>
+          <div class="ps-content">
+            <div class="ps-inner">
+              <div>
+                <div class="ps-block-title">The Challenge</div>
+                <p>${ps.problem}</p>
+              </div>
+              <div>
+                <div class="ps-block-title">What You May Build</div>
+                <p>${ps.buildIdeas}</p>
+              </div>
+              <div>
+                <div class="ps-block-title">Key Evaluation Focus</div>
+                <p><strong>${ps.focus}</strong></p>
+              </div>
+            </div>
+          </div>
+        </div>
+      `).join("");
+
+      // Render Schedule
+      renderSchedule();
+
+      // Render Rubric
+      const rubricContainer = document.getElementById("rubricContainer");
+      rubricContainer.innerHTML = EVENT_CONFIG.rubric.map(item => `
+        <div>
+          <div class="rubric-header">
+            <span class="rubric-name">${item.name}</span>
+            <span class="rubric-points">${item.points} pts</span>
+          </div>
+          <div class="rubric-bar">
+            <div class="rubric-fill" data-width="${item.points * 4}%"></div>
+          </div>
+        </div>
+      `).join("");
+
+      // Render Checklist
+      const checklistContainer = document.getElementById("checklistItems");
+      checklistContainer.innerHTML = EVENT_CONFIG.checklist.map(item => `
+        <div class="check-item" data-id="${item.id}" onclick="toggleCheck('${item.id}')">
+          <div class="custom-checkbox">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" style="display:none;"><polyline points="20 6 9 17 4 12"></polyline></svg>
+          </div>
+          <div class="check-text">
+            <strong>${item.title}</strong>
+            <span>${item.desc}</span>
+          </div>
+        </div>
+      `).join("");
+
+      // Render Mentors
+      const mentorsList = document.getElementById("mentorsList");
+      mentorsList.innerHTML = EVENT_CONFIG.mentors.map(m => `
+        <div class="mentor-card glass-card">
+          <div class="avatar-placeholder">
+            <span>${m.placeholder}</span>
+            <span style="font-size: 8px;">+ PHOTO</span>
+          </div>
+          <div class="mentor-info">
+            <h4>${m.name}</h4>
+            <span class="badge badge-blue">${m.role}</span>
+          </div>
+        </div>
+      `).join("");
+
+      // Render Organizers
+      const organizersList = document.getElementById("organizersList");
+      organizersList.innerHTML = EVENT_CONFIG.organizers.map(o => `
+        <div class="organizer-chip glass-card">
+          <div class="organizer-initial">${o.initials}</div>
+          <div>
+            <div style="font-weight: 600; color: #fff;">${o.name}</div>
+            <div style="font-size: 0.75rem; color: var(--text-muted); font-family: var(--mono-font);">Organizer</div>
+          </div>
+        </div>
+      `).join("");
+
+      // Render FAQs
+      const faqAccordion = document.getElementById("faqAccordion");
+      faqAccordion.innerHTML = EVENT_CONFIG.faqs.map((faq, idx) => `
+        <div class="faq-item ${idx === 0 ? 'open' : ''}">
+          <div class="faq-question" onclick="toggleFaq(this)">
+            <span>${faq.q}</span>
+            <div class="faq-toggle-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </div>
+          </div>
+          <div class="faq-answer">
+            <div class="faq-answer-inner">${faq.a}</div>
+          </div>
+        </div>
+      `).join("");
+
+      // Initialize UI features
+      initTypewriter();
+      initSubmissionCountdown();
+      initScrollObservers();
+      initCalendarDownload();
+    });
+
+    /* -------------------------------------------------------------------------
+       SCHEDULE LOGIC & CURRENT TIME HIGHLIGHT
+       ------------------------------------------------------------------------- */
+    function renderSchedule() {
+      const scheduleTimeline = document.getElementById("scheduleTimeline");
+      const now = new Date();
+      const currentMinutes = now.getHours() * 60 + now.getMinutes();
+
+      scheduleTimeline.innerHTML = EVENT_CONFIG.schedule.map(item => {
+        const isCurrent = (currentMinutes >= item.startMin && currentMinutes < item.endMin);
+        return `
+          <div class="timeline-item ${item.isHack ? 'highlight-hack' : ''} ${isCurrent ? 'active-session' : ''}">
+            <div class="timeline-node"></div>
+            <div class="timeline-card">
+              <div>
+                <div class="timeline-time">${item.time} ${isCurrent ? '<span class="badge badge-accent">Happening Now</span>' : ''}</div>
+                <div class="timeline-title">${item.title}</div>
+              </div>
+              ${item.badge ? `<span class="badge badge-blue font-mono">${item.badge}</span>` : ''}
+            </div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    /* -------------------------------------------------------------------------
+       INTERACTIVE ACCORDIONS
+       ------------------------------------------------------------------------- */
+    window.togglePS = function(index) {
+      const cards = document.querySelectorAll(".ps-card");
+      cards.forEach((card, idx) => {
+        if (idx === index) {
+          card.classList.toggle("expanded");
+        } else {
+          card.classList.remove("expanded");
+        }
+      });
+    };
+
+    window.toggleFaq = function(headerElem) {
+      const item = headerElem.parentElement;
+      item.classList.toggle("open");
+    };
+
+    /* -------------------------------------------------------------------------
+       SUBMISSION CHECKLIST (IN-MEMORY ONLY)
+       ------------------------------------------------------------------------- */
+    const checkedState = new Set();
+
+    window.toggleCheck = function(id) {
+      const itemElem = document.querySelector(`.check-item[data-id="${id}"]`);
+      const icon = itemElem.querySelector("svg");
+      
+      if (checkedState.has(id)) {
+        checkedState.delete(id);
+        itemElem.classList.remove("checked");
+        icon.style.display = "none";
+      } else {
+        checkedState.add(id);
+        itemElem.classList.add("checked");
+        icon.style.display = "block";
+      }
+
+      // Update progress
+      const total = EVENT_CONFIG.checklist.length;
+      const done = checkedState.size;
+      const pct = Math.round((done / total) * 100);
+      document.getElementById("progressPercent").textContent = `${pct}%`;
+      document.getElementById("progressFill").style.width = `${pct}%`;
+    };
+
+    /* -------------------------------------------------------------------------
+       SUBMISSION COUNTDOWN TIMER (SUBMISSION DEADLINE FOCUS)
+       ------------------------------------------------------------------------- */
+    function initSubmissionCountdown() {
+      const targetTime = new Date(EVENT_CONFIG.submissionDeadlineDateTime).getTime();
+      const heroTimer = document.getElementById("heroCountdownTimer");
+      const heroClosed = document.getElementById("heroCountdownClosed");
+      const chkClock = document.getElementById("checklistClock");
+
+      function update() {
+        const now = new Date().getTime();
+        const diff = targetTime - now;
+
+        if (diff <= 0) {
+          if (heroTimer) heroTimer.style.display = "none";
+          if (heroClosed) heroClosed.style.display = "block";
+          if (chkClock) chkClock.innerHTML = `<span style="color:#FF8389;">00:00:00 (CLOSED)</span>`;
+          return;
+        }
+
+        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        const secs = Math.floor((diff % (1000 * 60)) / 1000);
+
+        const padDays = String(days).padStart(2, '0');
+        const padHours = String(hours).padStart(2, '0');
+        const padMins = String(mins).padStart(2, '0');
+        const padSecs = String(secs).padStart(2, '0');
+
+        // Hero Clock
+        document.getElementById("cdDays").textContent = padDays;
+        document.getElementById("cdHours").textContent = padHours;
+        document.getElementById("cdMinutes").textContent = padMins;
+        document.getElementById("cdSeconds").textContent = padSecs;
+
+        // Checklist Inline Clock
+        document.getElementById("chkDays").textContent = padDays;
+        document.getElementById("chkHours").textContent = padHours;
+        document.getElementById("chkMinutes").textContent = padMins;
+        document.getElementById("chkSeconds").textContent = padSecs;
+      }
+
+      update();
+      setInterval(update, 1000);
+    }
+
+    /* -------------------------------------------------------------------------
+       TYPEWRITER TERMINAL EFFECT
+       ------------------------------------------------------------------------- */
+    function initTypewriter() {
+      const phrases = [
+        "bob build --track ps01",
+        "bob agent --optimize-latency",
+        "bob generate --test-cases",
+        "git push origin main"
+      ];
+      let pIdx = 0;
+      let cIdx = 0;
+      let isDeleting = false;
+      const target = document.getElementById("typewriterText");
+
+      function type() {
+        const current = phrases[pIdx];
+        if (isDeleting) {
+          target.textContent = current.substring(0, cIdx - 1);
+          cIdx--;
+        } else {
+          target.textContent = current.substring(0, cIdx + 1);
+          cIdx++;
+        }
+
+        let speed = isDeleting ? 40 : 80;
+
+        if (!isDeleting && cIdx === current.length) {
+          speed = 2200;
+          isDeleting = true;
+        } else if (isDeleting && cIdx === 0) {
+          isDeleting = false;
+          pIdx = (pIdx + 1) % phrases.length;
+          speed = 400;
+        }
+
+        setTimeout(type, speed);
+      }
+
+      type();
+    }
+
+    /* -------------------------------------------------------------------------
+       INTERSECTION OBSERVER & ACTIVE NAV
+       ------------------------------------------------------------------------- */
+    function initScrollObservers() {
+      const reveals = document.querySelectorAll(".reveal");
+      const revealObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("active");
+            
+            // Animate rubric bars if inside
+            const rubricFills = entry.target.querySelectorAll(".rubric-fill");
+            rubricFills.forEach(bar => {
+              bar.style.width = bar.getAttribute("data-width");
+            });
+          }
+        });
+      }, { threshold: 0.1 });
+
+      reveals.forEach(el => revealObserver.observe(el));
+
+      // Active nav highlight
+      const sections = document.querySelectorAll("section[id]");
+      const navLinks = document.querySelectorAll(".nav-link");
+
+      window.addEventListener("scroll", () => {
+        let current = "";
+        sections.forEach(section => {
+          const sectionTop = section.offsetTop - 120;
+          if (pageYOffset >= sectionTop) {
+            current = section.getAttribute("id");
+          }
+        });
+
+        navLinks.forEach(link => {
+          link.classList.remove("active");
+          if (link.getAttribute("href") === `#${current}`) {
+            link.classList.add("active");
+          }
+        });
+      });
+
+      // Mobile Menu
+      const toggle = document.getElementById("menuToggle");
+      const navMenu = document.getElementById("navLinks");
+      toggle.addEventListener("click", () => {
+        navMenu.classList.toggle("open");
+      });
+
+      navMenu.querySelectorAll("a").forEach(a => {
+        a.addEventListener("click", () => navMenu.classList.remove("open"));
+      });
+    }
+
+    /* -------------------------------------------------------------------------
+       ADD TO CALENDAR (.ICS GENERATOR)
+       ------------------------------------------------------------------------- */
+    function initCalendarDownload() {
+      document.getElementById("addToCalBtn").addEventListener("click", () => {
+        const start = new Date(EVENT_CONFIG.eventStartDateTime).toISOString().replace(/-|:|\.\d\d\d/g, "");
+        const end = new Date(EVENT_CONFIG.eventEndDateTime).toISOString().replace(/-|:|\.\d\d\d/g, "");
+
+        const icsData = [
+          "BEGIN:VCALENDAR",
+          "VERSION:2.0",
+          "PRODID:-//IBM User Group Nagpur//Build with Bob//EN",
+          "CALSCALE:GREGORIAN",
+          "METHOD:PUBLISH",
+          "BEGIN:VEVENT",
+          `SUMMARY:${EVENT_CONFIG.title}: ${EVENT_CONFIG.subtitle}`,
+          `DESCRIPTION:${EVENT_CONFIG.tagline} Registered participants build with Bob and deploy on GitHub. Community: ${EVENT_CONFIG.communityLink}`,
+          `LOCATION:Nagpur`,
+          `DTSTART:${start}`,
+          `DTEND:${end}`,
+          "STATUS:CONFIRMED",
+          "END:VEVENT",
+          "END:VCALENDAR"
+        ].join("\r\n");
+
+        const blob = new Blob([icsData], { type: "text/calendar;charset=utf-8" });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.setAttribute("download", "Build-with-IBM-Bob-HackDay.ics");
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      });
+    }
+
+    /* =========================================================================
+       INTRO SPLASH SCREEN
+       ========================================================================= */
+    function initSplash() {
+      const splash = document.getElementById("splashScreen");
+      setTimeout(() => {
+        splash.classList.add("hide");
+        setTimeout(() => { splash.style.display = "none"; }, 800);
+      }, 1900);
+    }
+    initSplash();
+
+    /* =========================================================================
+       SCROLL PROGRESS BAR
+       ========================================================================= */
+    function initScrollProgress() {
+      const bar = document.getElementById("scrollProgress");
+      window.addEventListener("scroll", () => {
+        const scrolled = window.scrollY;
+        const total = document.documentElement.scrollHeight - window.innerHeight;
+        bar.style.width = (scrolled / total * 100) + "%";
+      }, { passive: true });
+    }
+    initScrollProgress();
+
+    /* =========================================================================
+       PARTICLE CANVAS
+       ========================================================================= */
+    function initParticles() {
+      const canvas = document.getElementById("particleCanvas");
+      const ctx = canvas.getContext("2d");
+      let W, H, particles = [];
+
+      function resize() {
+        W = canvas.width  = window.innerWidth;
+        H = canvas.height = window.innerHeight;
+      }
+      resize();
+      window.addEventListener("resize", resize, { passive: true });
+
+      const COLORS = ["rgba(15,98,254,", "rgba(120,169,255,", "rgba(165,110,255,", "rgba(0,215,210,"];
+
+      for (let i = 0; i < 90; i++) {
+        particles.push({
+          x: Math.random() * window.innerWidth,
+          y: Math.random() * window.innerHeight,
+          vx: (Math.random() - 0.5) * 0.4,
+          vy: (Math.random() - 0.5) * 0.4,
+          r: Math.random() * 1.5 + 0.4,
+          color: COLORS[Math.floor(Math.random() * COLORS.length)],
+          alpha: Math.random() * 0.5 + 0.1
+        });
+      }
+
+      // Mouse attractor
+      let mx = -9999, my = -9999;
+      window.addEventListener("mousemove", e => { mx = e.clientX; my = e.clientY; }, { passive: true });
+
+      function draw() {
+        ctx.clearRect(0, 0, W, H);
+
+        // Draw connecting lines
+        for (let i = 0; i < particles.length; i++) {
+          for (let j = i + 1; j < particles.length; j++) {
+            const dx = particles[i].x - particles[j].x;
+            const dy = particles[i].y - particles[j].y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            if (dist < 110) {
+              ctx.beginPath();
+              ctx.strokeStyle = `rgba(120,169,255,${(1 - dist / 110) * 0.12})`;
+              ctx.lineWidth = 0.5;
+              ctx.moveTo(particles[i].x, particles[i].y);
+              ctx.lineTo(particles[j].x, particles[j].y);
+              ctx.stroke();
+            }
+          }
+        }
+
+        // Draw + update particles
+        particles.forEach(p => {
+          // Gentle attraction to mouse
+          const dx = mx - p.x, dy = my - p.y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist < 180) {
+            p.vx += dx / dist * 0.015;
+            p.vy += dy / dist * 0.015;
+          }
+          // Speed cap
+          const speed = Math.sqrt(p.vx * p.vx + p.vy * p.vy);
+          if (speed > 1.2) { p.vx *= 0.95; p.vy *= 0.95; }
+
+          p.x += p.vx;
+          p.y += p.vy;
+
+          if (p.x < 0) p.x = W;
+          if (p.x > W) p.x = 0;
+          if (p.y < 0) p.y = H;
+          if (p.y > H) p.y = 0;
+
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+          ctx.fillStyle = p.color + p.alpha + ")";
+          ctx.fill();
+        });
+
+        requestAnimationFrame(draw);
+      }
+      draw();
+    }
+    initParticles();
+
+    /* =========================================================================
+       MAGNETIC BUTTON EFFECT
+       ========================================================================= */
+    function initMagneticButtons() {
+      document.querySelectorAll(".btn-primary").forEach(btn => {
+        btn.addEventListener("mousemove", e => {
+          const rect = btn.getBoundingClientRect();
+          const x = e.clientX - rect.left;
+          const y = e.clientY - rect.top;
+          const cx = rect.width / 2, cy = rect.height / 2;
+          const dx = (x - cx) / cx, dy = (y - cy) / cy;
+          btn.style.transform = `translate(${dx * 6}px, ${dy * 5}px) scale(1.04)`;
+          btn.style.setProperty("--mx", x + "px");
+          btn.style.setProperty("--my", y + "px");
+        });
+        btn.addEventListener("mouseleave", () => {
+          btn.style.transform = "";
+        });
+      });
+    }
+    document.addEventListener("DOMContentLoaded", initMagneticButtons);
+
+    /* =========================================================================
+       3D TILT CARDS
+       ========================================================================= */
+    function initTiltCards() {
+      document.querySelectorAll(".tilt-card").forEach(card => {
+        card.addEventListener("mousemove", e => {
+          const rect = card.getBoundingClientRect();
+          const x = e.clientX - rect.left;
+          const y = e.clientY - rect.top;
+          const cx = rect.width / 2, cy = rect.height / 2;
+          const rotX = ((y - cy) / cy) * -8;
+          const rotY = ((x - cx) / cx) * 8;
+          card.style.transform = `perspective(800px) rotateX(${rotX}deg) rotateY(${rotY}deg) scale(1.02)`;
+        });
+        card.addEventListener("mouseleave", () => {
+          card.style.transform = "perspective(800px) rotateX(0deg) rotateY(0deg) scale(1)";
+        });
+      });
+    }
+    document.addEventListener("DOMContentLoaded", initTiltCards);
+
+    /* =========================================================================
+       RIPPLE EFFECT ON BUTTONS & CHECK ITEMS
+       ========================================================================= */
+    function initRipple() {
+      function addRipple(el) {
+        el.classList.add("ripple-host");
+        el.addEventListener("click", e => {
+          const rect = el.getBoundingClientRect();
+          const size = Math.max(rect.width, rect.height);
+          const x = e.clientX - rect.left - size / 2;
+          const y = e.clientY - rect.top  - size / 2;
+          const wave = document.createElement("span");
+          wave.className = "ripple-wave";
+          wave.style.cssText = `width:${size}px;height:${size}px;left:${x}px;top:${y}px;`;
+          el.appendChild(wave);
+          setTimeout(() => wave.remove(), 600);
+        });
+      }
+      document.querySelectorAll(".btn").forEach(addRipple);
+      document.querySelectorAll(".check-item").forEach(addRipple);
+      document.querySelectorAll(".ps-header").forEach(addRipple);
+      document.querySelectorAll(".faq-question").forEach(addRipple);
+    }
+    document.addEventListener("DOMContentLoaded", initRipple);
+
+    /* =========================================================================
+       STAGGERED CARD ENTRANCE (IntersectionObserver)
+       ========================================================================= */
+    function initStagger() {
+      const staggerObs = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            const siblings = entry.target.parentElement.querySelectorAll(".stagger-child");
+            siblings.forEach((child, i) => {
+              setTimeout(() => child.classList.add("visible"), i * 120);
+            });
+            staggerObs.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.15 });
+
+      document.querySelectorAll(".stagger-child").forEach(el => staggerObs.observe(el));
+    }
+    document.addEventListener("DOMContentLoaded", initStagger);
+
+    /* =========================================================================
+       COUNTER ROLL-UP ANIMATION
+       ========================================================================= */
+    function initCounters() {
+      const counterObs = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            const el = entry.target;
+            const target = parseInt(el.dataset.count, 10);
+            if (isNaN(target)) return;
+            const suffix = el.dataset.suffix || "";
+            let current = 0;
+            const increment = Math.ceil(target / 30);
+            const tick = () => {
+              current = Math.min(current + increment, target);
+              el.textContent = current + suffix;
+              if (current < target) requestAnimationFrame(tick);
+            };
+            requestAnimationFrame(tick);
+            counterObs.unobserve(el);
+          }
+        });
+      }, { threshold: 0.5 });
+
+      document.querySelectorAll("[data-count]").forEach(el => counterObs.observe(el));
+    }
+    document.addEventListener("DOMContentLoaded", initCounters);
+
+    /* =========================================================================
+       FLOATING DATA DOTS (SPAWNER)
+       ========================================================================= */
+    function initFloatDots() {
+      const colors = ["rgba(15,98,254,0.6)", "rgba(120,169,255,0.6)", "rgba(165,110,255,0.5)", "rgba(0,215,210,0.5)"];
+      function spawnDot() {
+        const dot = document.createElement("div");
+        dot.className = "float-dot";
+        const size = Math.random() * 3 + 2;
+        dot.style.cssText = `
+          left: ${Math.random() * 100}vw;
+          bottom: -10px;
+          width: ${size}px;
+          height: ${size}px;
+          background: ${colors[Math.floor(Math.random() * colors.length)]};
+          animation-duration: ${Math.random() * 8 + 6}s;
+          animation-delay: 0s;
+        `;
+        document.body.appendChild(dot);
+        setTimeout(() => dot.remove(), 14000);
+      }
+      setInterval(spawnDot, 800);
+    }
+    initFloatDots();
+
+    /* =========================================================================
+       CURSOR TRAIL SPARKLES
+       ========================================================================= */
+    function initCursorTrail() {
+      window.addEventListener("mousemove", e => {
+        if (Math.random() > 0.35) return;
+        const spark = document.createElement("div");
+        const size = Math.random() * 5 + 2;
+        spark.style.cssText = `
+          position:fixed;
+          left:${e.clientX - size/2}px;
+          top:${e.clientY - size/2}px;
+          width:${size}px;
+          height:${size}px;
+          border-radius:50%;
+          background:rgba(120,169,255,${Math.random() * 0.5 + 0.3});
+          pointer-events:none;
+          z-index:9998;
+          transition:opacity 0.4s ease, transform 0.4s ease;
+        `;
+        document.body.appendChild(spark);
+        requestAnimationFrame(() => {
+          spark.style.opacity = "0";
+          spark.style.transform = `translate(${(Math.random()-0.5)*20}px,${(Math.random()-0.5)*20}px) scale(0.2)`;
+        });
+        setTimeout(() => spark.remove(), 500);
+      }, { passive: true });
+    }
+    initCursorTrail();
+  </script>
+</body>
+</html>
